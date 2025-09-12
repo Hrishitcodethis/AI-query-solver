@@ -4,6 +4,7 @@ import SchemaExplorer from "./components/SchemaExplorer";
 import QueryForm from "./components/QueryForm";
 import AnalyticsCharts from "./components/AnalyticsCharts";
 import AnalysisResult from "./components/AnalysisResult";
+import ChatBox from "./components/ChatBox";
 import { Database, Activity, Zap } from "lucide-react";
 
 interface Schema {
@@ -43,7 +44,9 @@ export default function App() {
             </h1>
           </div>
           <p className="text-sm sm:text-base lg:text-lg text-gray-600 max-w-2xl mx-auto px-4">
-            Upload your database and log files to get intelligent insights, performance analytics, and query optimization recommendations powered by AI.
+            Upload your database and log files to get intelligent insights,
+            performance analytics, and query optimization recommendations
+            powered by AI.
           </p>
         </div>
 
@@ -79,7 +82,7 @@ export default function App() {
               }}
             />
           </div>
-          
+
           {analysis && (
             <div className="w-full lg:col-span-7 xl:col-span-8">
               <AnalysisResult analysis={analysis} />
@@ -103,7 +106,7 @@ export default function App() {
                 </div>
               </div>
             </div>
-            
+
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-green-100 rounded-lg">
@@ -117,22 +120,34 @@ export default function App() {
                 </div>
               </div>
             </div>
-            
+
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-yellow-100 rounded-lg">
                   <Zap className="w-5 h-5 text-yellow-600" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Avg Response</p>
+                  <p className="text-sm font-medium text-gray-600">
+                    Avg Response
+                  </p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {logs ? `${Math.round(logs.reduce((acc, log) => acc + log.exec_time_ms, 0) / logs.length)}ms` : '0ms'}
+                    {logs
+                      ? `${Math.round(
+                          logs.reduce((acc, log) => acc + log.exec_time_ms, 0) /
+                            logs.length
+                        )}ms`
+                      : "0ms"}
                   </p>
                 </div>
               </div>
             </div>
           </div>
         )}
+
+        {/* LLM ChatBox Assistant */}
+        <div className="mt-10">
+          <ChatBox schema={schema} logs={logs} />
+        </div>
       </div>
     </div>
   );
