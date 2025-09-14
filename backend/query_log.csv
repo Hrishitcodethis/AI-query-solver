@@ -1,0 +1,16 @@
+query_id,query,exec_time_ms,rows_returned,success,error,timestamp
+4fb1c7b6,SELECT COUNT(*) FROM customer,13.808965682983398,1,True,,1757876380.415615
+bd8dbff7,SELECT 1,4.18400764465332,1,True,,1757876472.076564
+579351c6,"-- Multi-table join with aggregations
+SELECT 
+    i.i_category,
+    i.i_brand,
+    SUM(ss.ss_sales_price) as total_sales,
+    COUNT(*) as transaction_count
+FROM store_sales ss
+JOIN item i ON ss.ss_item_sk = i.i_item_sk
+JOIN date_dim d ON ss.ss_sold_date_sk = d.d_date_sk
+WHERE d.d_year = 2001
+GROUP BY i.i_category, i.i_brand
+ORDER BY total_sales DESC
+LIMIT 20;",35.87794303894043,20,True,,1757876788.6416042

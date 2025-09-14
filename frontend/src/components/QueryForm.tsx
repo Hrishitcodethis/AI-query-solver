@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, Zap, AlertCircle, CheckCircle } from "lucide-react";
+import { Search, Zap, AlertCircle, CheckCircle, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,6 +12,15 @@ export default function QueryForm({ onAnalysis }: QueryFormProps) {
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [queryId, setQueryId] = useState<string | null>(null);
+  const [executionTime, setExecutionTime] = useState<number | null>(null);
+  const [rowsReturned, setRowsReturned] = useState<number | null>(null);
+
+  const copyQueryId = () => {
+    if (queryId) {
+      navigator.clipboard.writeText(queryId);
+    }
+  };
 
   const submitQuery = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,6 +28,7 @@ export default function QueryForm({ onAnalysis }: QueryFormProps) {
 
     setLoading(true);
     setStatus('idle');
+    setQueryId(null);
 
     try {
       const res = await fetch("http://localhost:8000/analyze", {
@@ -27,13 +37,24 @@ export default function QueryForm({ onAnalysis }: QueryFormProps) {
         body: JSON.stringify({ query: query.trim() })
       });
 
-      if (!res.ok) throw new Error('Analysis failed');
+      if (!res.ok) throw new Error('Query execution failed');
       
       const data = await res.json();
-      onAnalysis(data);
+      
+      // Update state with query results
+      setQueryId(data.query_id);
+      setExecutionTime(data.execution_time);
+      setRowsReturned(data.rows_returned);
+      
+      // Call the parent callback with minimal data
+      onAnalysis({
+        analysis: data.message,
+        updated_logs: [] // No logs needed for display
+      });
+      
       setStatus('success');
     } catch (error) {
-      console.error("Analysis error:", error);
+      console.error("Query execution error:", error);
       setStatus('error');
     } finally {
       setLoading(false);
@@ -41,10 +62,10 @@ export default function QueryForm({ onAnalysis }: QueryFormProps) {
   };
 
   const exampleQueries = [
-    "SELECT * FROM users WHERE age > 25",
-    "SELECT COUNT(*) FROM orders GROUP BY status",
-    "SELECT u.name, o.total FROM users u JOIN orders o ON u.id = o.user_id",
-    "UPDATE products SET price = price * 1.1 WHERE category = 'electronics'"
+    "SELECT COUNT(*) FROM customer",
+    "SELECT * FROM store_sales LIMIT 10",
+    "SELECT i_category, SUM(ss_sales_price) FROM store_sales ss JOIN item i ON ss.ss_item_sk = i.i_item_sk GROUP BY i_category",
+    "SELECT c_first_name, c_last_name FROM customer WHERE c_customer_sk < 100"
   ];
 
   const handleExampleClick = (exampleQuery: string) => {
@@ -59,7 +80,7 @@ export default function QueryForm({ onAnalysis }: QueryFormProps) {
           SQL Query Analyzer
         </CardTitle>
         <p className="text-sm text-gray-600">
-          Enter your SQL query to get AI-powered optimization insights
+          Execute your SQL query and get a query ID for analysis
         </p>
       </CardHeader>
       <CardContent className="space-y-4 sm:space-y-6">
@@ -87,29 +108,53 @@ export default function QueryForm({ onAnalysis }: QueryFormProps) {
               {loading ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                  Analyzing...
+                  Executing...
                 </>
               ) : (
                 <>
                   <Zap className="w-4 h-4 mr-2" />
-                  Analyze Query
+                  Execute Query
                 </>
               )}
             </Button>
 
-            {status === 'success' && (
-              <div className="flex items-center justify-center sm:justify-start gap-2 text-green-600">
+            {status === 'success' && queryId && (
+              <div className="flex items-center gap-2 text-green-600">
                 <CheckCircle className="w-4 h-4" />
-                <span className="text-sm">Analysis complete!</span>
+                <span className="text-sm">Query executed! ID: {queryId}</span>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={copyQueryId}
+                  className="h-6 px-2 text-xs"
+                >
+                  <Copy className="w-3 h-3 mr-1" />
+                  Copy ID
+                </Button>
               </div>
             )}
             {status === 'error' && (
-              <div className="flex items-center justify-center sm:justify-start gap-2 text-red-600">
+              <div className="flex items-center gap-2 text-red-600">
                 <AlertCircle className="w-4 h-4" />
-                <span className="text-sm">Analysis failed. Please try again.</span>
+                <span className="text-sm">Query failed. Please try again.</span>
               </div>
             )}
           </div>
+
+          {/* Query Results */}
+          {status === 'success' && queryId && (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+              <div className="text-sm text-green-800">
+                <p><strong>Query ID:</strong> {queryId}</p>
+                <p><strong>Execution Time:</strong> {executionTime?.toFixed(2)}ms</p>
+                <p><strong>Rows Returned:</strong> {rowsReturned}</p>
+                <p className="mt-2 text-xs text-green-600">
+                   Ask the AI assistant: "analyze query {queryId}" for detailed analysis
+                </p>
+              </div>
+            </div>
+          )}
         </form>
 
         {/* Example Queries */}

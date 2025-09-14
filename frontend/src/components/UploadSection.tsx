@@ -16,7 +16,7 @@ export default function UploadSection({ onSchemaLoaded, onLogsLoaded }: UploadSe
 
   const uploadFiles = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!dbFile || !logFile) return;
+    if (!dbFile) return; // Only database file is required
 
     setUploading(true);
     setUploadStatus('idle');
@@ -24,7 +24,11 @@ export default function UploadSection({ onSchemaLoaded, onLogsLoaded }: UploadSe
     try {
       const formData = new FormData();
       formData.append("db_file", dbFile);
-      formData.append("log_file", logFile);
+      
+      // Only append log file if it exists
+      if (logFile) {
+        formData.append("log_file", logFile);
+      }
 
       const res = await fetch("http://localhost:8000/upload", {
         method: "POST",
@@ -53,7 +57,7 @@ export default function UploadSection({ onSchemaLoaded, onLogsLoaded }: UploadSe
           Upload Database Files
         </CardTitle>
         <CardDescription>
-          Upload your database file (.db) and query log file (.csv) to start analyzing
+          Upload your database file (.db) to start analyzing. Log file (.csv) is optional and contains query history.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -63,7 +67,7 @@ export default function UploadSection({ onSchemaLoaded, onLogsLoaded }: UploadSe
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
                 <Database className="w-4 h-4" />
-                Database File (.db)
+                Database File (.db) <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <input
@@ -100,7 +104,7 @@ export default function UploadSection({ onSchemaLoaded, onLogsLoaded }: UploadSe
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
                 <FileText className="w-4 h-4" />
-                Log File (.csv)
+                Log File (.csv) <span className="text-gray-400 text-xs">(Optional)</span>
               </label>
               <div className="relative">
                 <input
@@ -109,7 +113,6 @@ export default function UploadSection({ onSchemaLoaded, onLogsLoaded }: UploadSe
                   onChange={(e) => setLogFile(e.target.files?.[0] || null)}
                   className="hidden"
                   id="log-file"
-                  required
                 />
                 <label
                   htmlFor="log-file"
@@ -125,7 +128,7 @@ export default function UploadSection({ onSchemaLoaded, onLogsLoaded }: UploadSe
                     ) : (
                       <div>
                         <p className="text-xs sm:text-sm text-gray-600">Click to select log file</p>
-                        <p className="text-xs text-gray-400">CSV format</p>
+                        <p className="text-xs text-gray-400">Previous query history</p>
                       </div>
                     )}
                   </div>
@@ -138,7 +141,7 @@ export default function UploadSection({ onSchemaLoaded, onLogsLoaded }: UploadSe
           <div className="flex flex-col items-center gap-4">
             <Button
               type="submit"
-              disabled={!dbFile || !logFile || uploading}
+              disabled={!dbFile || uploading}
               size="lg"
               className="w-full sm:w-auto"
             >
