@@ -55,13 +55,6 @@ Welcome to **AI Query Solver**! This guide will help you quickly get started as 
 
 ---
 
-### 📷 [Insert Images Below to Show User Experience]
-
-- *Query Analyser UI screenshot*
-- *Example graphical analysis output*
-
----
-
 ## 🛠️ How to Use the Code
 
 - All main logic resides in `src/` (or as per your repo structure).
