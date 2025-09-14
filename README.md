@@ -1,4 +1,4 @@
-# AI Query Solver
+# AI Powered DB Profiler
 
 ## 🚀 How to Use as an App User
 
